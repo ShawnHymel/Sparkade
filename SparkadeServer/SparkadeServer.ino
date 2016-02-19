@@ -29,7 +29,7 @@
  *  Place a web page "index.html" file on a FAT-formatted SD card
  *  conencted to the Thing (via SPI). The server, on boot, will
  *  create an access point and serve the index.html file to HTTP
- *  requests.
+ *  requests. See README.md for more detailed instructions.
  * 
  * Based on the ESP8266WebServer library by Ivan Grokhotkov (2014)
  * 
@@ -69,7 +69,7 @@
 const char* AP_SSID = "Sparkade";     // Name of access point (AP)
 const char* AP_PSK = "";              // Password for AP
 const String DEFAULT_PAGE = "index.html";
-const char LOG_FILE[] = "debug.log";  // Will be deleted on init
+const String LOG_FILE_BASE = "debug"; // Name of the log file
 const IPAddress AP_IP(10, 10, 10, 1);
 const IPAddress SUBNET_MASK(255, 255, 255, 0);
 const byte DNS_PORT = 53;             // Port for DNS
@@ -81,30 +81,33 @@ IPAddress ap_ip(192, 168, 1, 1);
 DNSServer dns_server;
 ESP8266WebServer server(80);
 static bool has_sd = false;
-File upload_file;
 SdFat sd;
-SdFile file;
+SdFile log_file;
+char *log_file_name;
 
 /****************************************************************
  * Functions
  ***************************************************************/
 
-// Send a debug message to the serial console
-void debugSerial(char s[]) {
+// Send debugging message to the serial console and log file
+void debug(char s[]) {
+
+  // Print to console
   if ( DEBUG_SERIAL > 0 ) {
     Serial.println(s);
   }
-}
 
-// Append a string to the log file on the SD card
-void debugLog(char s[]) {
+  // Append to log file
   if ( DEBUG_LOG > 0 ) {
     digitalWrite(LED_PIN, LED_ON);
-    if ( !file.open(LOG_FILE, O_CREAT | O_WRITE | O_AT_END) ) {
-      debugSerial("Could not write to log file");
+    if ( !log_file.open(log_file_name, 
+                        O_CREAT | O_WRITE | O_AT_END) ) {
+      if ( DEBUG_SERIAL > 0 ) {
+        Serial.println("Could not write to log file");
+      }
     }
-    file.println(s);
-    file.close();
+    log_file.println(s);
+    log_file.close();
     digitalWrite(LED_PIN, LED_OFF);
   }
 }
@@ -120,22 +123,56 @@ void setupAP() {
   IPAddress ip = WiFi.softAPIP();
   char msg[25];
   sprintf(msg, "AP at: %i.%i.%i.%i", ip[0], ip[1], ip[2], ip[3]);
-  debugSerial(msg);
-  debugLog(msg);
+  debug(msg);
 
   // Start running DNS server (captive portal)
   dns_server.setErrorReplyCode(DNSReplyCode::NoError);
   dns_server.start(DNS_PORT, "*", AP_IP);
 }
 
+// Create a new log file
+void createLogFile() {
+
+  uint32_t cnt = 0;
+  String file_name;
+  uint32_t name_len;
+  bool exists = true;
+
+  // Keep incrementing until we find a file that doesn't exist
+  while ( exists ) {
+
+    // Construct char array of log file name
+    file_name = LOG_FILE_BASE + cnt + ".log";
+    name_len = file_name.length() + 1;
+    log_file_name = (char *)malloc(name_len * sizeof(char));
+    memset(log_file_name, 0, name_len);
+    file_name.toCharArray(log_file_name, name_len);
+
+    // Check if we've reached the max log files
+    if ( cnt == UINT32_MAX ) {
+      exists = false;
+      debug("Max logs reached. Using the last one.");
+      break;
+    }
+
+    // Check if the log file exists
+    if ( sd.exists(log_file_name) ) {
+      cnt++;
+      free(log_file_name);
+    } else {
+      exists = false;
+    }
+  }
+}
+
 // Serve a file from the SD card
-bool loadFromSdCard(String path){
+bool loadFromSdCard(String path) {
 
   String data_type = "text/plain";
 
   // Default load index.htm
   if ( (path == "") || path.endsWith("/") ) {
-    path += "index.htm";
+    path += DEFAULT_PAGE;
     data_type = "text/html";
   }
 
@@ -167,15 +204,15 @@ bool loadFromSdCard(String path){
   // Look for file in SD card
   File data_file = sd.open(path.c_str());
   if ( data_file.isDirectory() ) {
-    path += "/index.htm";
+    path += "/";
+    path += DEFAULT_PAGE;
     data_type = "text/html";
     data_file = sd.open(path.c_str());
   }
 
   // If we were unable to open the file, return
   if ( !data_file ) {
-    debugSerial("Could not read file from SD card");
-    debugLog("Could not read file from SD card");
+    debug("Could not read file from SD card");
     return false;
   }
 
@@ -228,8 +265,8 @@ void setup() {
   // Enable debugging
   if ( DEBUG_SERIAL > 0 ) {
     Serial.begin(9600);
+    Serial.println("Thing Captive Portal");
   }
-  debugSerial("Thing Captive Portal");
 
   // Config LED
   pinMode(LED_PIN, OUTPUT);
@@ -237,11 +274,20 @@ void setup() {
 
   // Enable SD card
   if ( sd.begin(SD_CS, SD_SPEED) ) {
-    debugSerial("SD card initialized");
+    if ( DEBUG_SERIAL > 0 ) {
+      Serial.println("SD card initialized");
+    }
     has_sd = true;
   } else {
-    debugSerial("SD card could not be initialized");
+    if ( DEBUG_SERIAL > 0 ) {
+      Serial.println("SD card could not be initialized");
+    }
     while(1);
+  }
+
+  // Check if log file exists
+  if ( DEBUG_LOG > 0 ) {
+    createLogFile();
   }
 
   // Enable access point
