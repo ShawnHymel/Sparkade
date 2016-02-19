@@ -6,11 +6,11 @@ Captive portal access point that serves a JavaScript game to clients.
 Getting Started
 ---------------
 
- - In Arduino, File->Preferences and add `http://arduino.esp8266.com/stable/package_esp8266com_index.json`
- - Tools->Board->Boards Manager and install 2.0.0 of esp8266
+ - In Arduino, File->Preferences and add `http://arduino.esp8266.com/staging/package_esp8266com_index.json`
+ - Tools->Board->Boards Manager and install 2.1.0-rc2 of esp8266
  - Close Arduino
- - Open the ESP8266 boards.txt file (Windows: \\Users\{UserName}\AppData\Local\Arduino15\packages\esp8266\hardware\esp8266\2.0.0\boards.txt) and replace `thing.upload.resetmethod=ck` with `thing.upload.resetmethod=nodemcu`
- - Download SdFat (https://github.com/greiman/SdFat) and copy SdFat directory to (Documents)/Arduino/libraries
+ - Download [arduinoWebSockets](https://github.com/Links2004/arduinoWebSockets) and copy arduinoWebSockets to (Documents)/Arduino/libraries
+ - Download [SdFat](https://github.com/greiman/SdFat) and copy SdFat directory to (Documents)/Arduino/libraries
  - Open libraries/SdFat/SdFatConfig.h and change `#define SD_SPI_CONFIGURATION 0` to `#define SD_SPI_CONFIGURATION 1`
  - Open libraries/SdFat/SdFatUtil.cpp and change `#else  // __arm__` to `#else ifndef ESP8266 // __arm__`
  - Open libraries/SdFat/utility/StdioStream.cpp and change:

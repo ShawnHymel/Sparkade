@@ -55,12 +55,15 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <DNSServer.h>
+#include <WebSocketsServer.h>
+#include <Hash.h>
 #include <SPI.h>
 #include <SdFat.h>
 
 // Constants
 #define DEBUG_SERIAL      1           // Print info to serial
 #define DEBUG_LOG         1           // Save debug info to file
+#define INCREMENT_LOG     0           // Append to end of 1 file
 #define SD_SPEED          SPI_HALF_SPEED
 #define LED_ON            0
 #define LED_OFF           1
@@ -80,10 +83,14 @@ const int LED_PIN = 5;                // LED for R/W operations
 IPAddress ap_ip(192, 168, 1, 1);
 DNSServer dns_server;
 ESP8266WebServer server(80);
+WebSocketsServer socket = WebSocketsServer(81);
 static bool has_sd = false;
 SdFat sd;
 SdFile log_file;
 char *log_file_name;
+
+//***TEST***
+int led_state = 0;
 
 /****************************************************************
  * Functions
@@ -138,29 +145,41 @@ void createLogFile() {
   uint32_t name_len;
   bool exists = true;
 
-  // Keep incrementing until we find a file that doesn't exist
-  while ( exists ) {
-
+  if ( INCREMENT_LOG == 0 ) {
+    
     // Construct char array of log file name
-    file_name = LOG_FILE_BASE + cnt + ".log";
+    file_name = LOG_FILE_BASE + ".log";
     name_len = file_name.length() + 1;
     log_file_name = (char *)malloc(name_len * sizeof(char));
     memset(log_file_name, 0, name_len);
     file_name.toCharArray(log_file_name, name_len);
+  
+  } else {
 
-    // Check if we've reached the max log files
-    if ( cnt == UINT32_MAX ) {
-      exists = false;
-      debug("Max logs reached. Using the last one.");
-      break;
-    }
-
-    // Check if the log file exists
-    if ( sd.exists(log_file_name) ) {
-      cnt++;
-      free(log_file_name);
-    } else {
-      exists = false;
+    // Keep incrementing until we find a file that doesn't exist
+    while ( exists ) {
+  
+      // Construct char array of log file name
+      file_name = LOG_FILE_BASE + cnt + ".log";
+      name_len = file_name.length() + 1;
+      log_file_name = (char *)malloc(name_len * sizeof(char));
+      memset(log_file_name, 0, name_len);
+      file_name.toCharArray(log_file_name, name_len);
+  
+      // Check if we've reached the max log files
+      if ( cnt == UINT32_MAX ) {
+        exists = false;
+        debug("Max logs reached. Using the last one.");
+        break;
+      }
+  
+      // Check if the log file exists
+      if ( sd.exists(log_file_name) ) {
+        cnt++;
+        free(log_file_name);
+      } else {
+        exists = false;
+      }
     }
   }
 }
@@ -257,6 +276,33 @@ void handleNotFound(){
 }
 
 /****************************************************************
+ * WebSocket Handler (callback)
+ ***************************************************************/
+
+void handleSocketEvent(uint8_t num, 
+                       WStype_t type, 
+                       uint8_t * payload, 
+                       size_t lenght) {
+
+  switch(type) {
+    case WStype_DISCONNECTED:
+      Serial.println("Socket disconnected");
+      break;
+    case WStype_CONNECTED:
+      Serial.println("Socket connected");
+      break;
+    case WStype_TEXT:
+      if ( payload[0] == '#' ) {
+        led_state = led_state ? 0 : 1;
+        digitalWrite(LED_PIN, led_state);
+      }
+      break;
+    default:
+      break;
+  }
+}
+
+/****************************************************************
  * Execution starts here
  ***************************************************************/
 
@@ -299,6 +345,10 @@ void setup() {
 
   // Start web server
   server.begin();
+
+  // Start WebSocket server
+  socket.begin();
+  socket.onEvent(handleSocketEvent);
 }
 
 void loop() {
@@ -308,5 +358,8 @@ void loop() {
 
   // Process client HTTP requests
   server.handleClient();
+
+  // Process WebSocket event
+  socket.loop();
 }
 
