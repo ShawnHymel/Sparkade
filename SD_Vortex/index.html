@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Vortex</title>
+    <style>
+        body {
+          background-color: #c9c3c0;
+        }
+
+        #container {
+          display: table;
+          table-layout: fixed;
+          margin: 20px auto 20px auto;
+          border: 2px solid black;
+        }
+
+        #row {
+          display: table-row;
+          background-color: green;
+        }
+
+        #bezel {
+          display: table-cell;
+          width: 280px;
+          padding: 25px 55px 25px 55px;
+          border-radius: 15px 15px 40px 15px;
+          background-color: #8a8387;
+        }
+
+        #screen {
+          width: 100%;
+          margin: 0 auto;
+          background-color: black;
+        }
+
+        #cell-dpad {
+          display: table-cell;
+          width: 200px;
+          background-color:lightblue;
+        }
+
+        #button-up {
+          position: absolute;
+          bottom: 100px;
+          left: 80px;
+          max-width: 50px;
+          max-height: 50px;
+        }
+
+        #button-left {
+          position: absolute;
+          bottom: 60px;
+          left: 40px;
+          max-width: 50px;
+          max-height: 50px;
+          transform: rotate(270deg);
+          -ms-transform: rotate(270deg);
+          -webkit-transform: rotate(270deg);
+          -o-transform: rotate(270deg);
+          -moz-transform: rotate(270deg);
+        }
+
+        #button-right {
+          position: absolute;
+          bottom: 60px;
+          left: 120px;
+          max-width: 50px;
+          max-height: 50px;
+          transform: rotate(90deg);
+          -ms-transform: rotate(90deg);
+          -webkit-transform: rotate(90deg);
+          -o-transform: rotate(90deg);
+          -moz-transform: rotate(90deg);
+        }
+
+        #button-down {
+          position: absolute;
+          bottom: 20px;
+          left: 80px;
+          max-width: 50px;
+          max-height: 50px;
+          transform: rotate(180deg);
+          -ms-transform: rotate(180deg);
+          -webkit-transform: rotate(180deg);
+          -o-transform: rotate(180deg);
+          -moz-transform: rotate(90deg);
+        }
+
+        #cell-buttons {
+          display: table-cell;
+          width: 100px;
+          background-color: red;
+        }
+
+        #dpad {
+          display: block;
+          width: 50px;
+        }
+
+        #buttons {
+          display: block;
+          width: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+      <div id="row">
+        <div id="cell-dpad">
+          <div id="dpad">
+            <img id="button-up"
+              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
+            <img id="button-left"
+              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
+            <img id="button-right"
+              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
+            <img id="button-down"
+              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
+          </div>
+        </div>
+        <div id="bezel">
+          <canvas id="screen" width="256" height="244"></canvas>
+        </div>
+        <div id="cell-buttons">
+          <div id="buttons">
+            a
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="text"></div>
+
+<script>
+
+    // Declare our globals under one "game" object. Set div size.
+    window.game = {};
+    window.game.canvas = document.getElementById("screen");
+    window.game.ctx = window.game.canvas.getContext("2d");
+    document.getElementById("container").style.width = window.game.canvas.width + "px";
+    document.getElementById("container").style.height = window.game.canvas.height + "px";
+
+    /*****************************************************************************
+     * Game functions
+     ****************************************************************************/
+    function click() {
+        console.log("powepr");
+        }
+    function debug(s) {
+      document.getElementById('text').innerHTML = s;
+    }
+
+    function drawPlayer() {
+      window.game.ctx.beginPath();
+      window.game.ctx.rect(window.game.player.x, window.game.player.y, 10, 10);
+      window.game.ctx.fillStyle = "#FF0000";
+      window.game.ctx.fill();
+      window.game.ctx.closePath();
+    }
+
+    function handleInput() {
+
+      // Up
+      if (window.game.key[0]) {
+        window.game.player.y -= 4;
+      }
+
+      // Down
+      if (window.game.key[1]) {
+        window.game.player.y += 4;
+      }
+
+      // Left
+      if (window.game.key[2]) {
+        window.game.player.x -= 4;
+      }
+
+      // Right
+      if (window.game.key[3]) {
+        window.game.player.x += 4;
+      }
+    }
+
+    function changeKey(key, pressed) {
+      switch (key) {
+
+        // Up (w and up arrow)
+        case 'up':
+        case 87:
+        case 38:
+          window.game.key[0] = pressed;
+          break;
+
+          // Down (s and down arrow)
+        case 83:
+        case 40:
+          window.game.key[1] = pressed;
+          break;
+
+          // Left (a and left arrow)
+        case 65:
+        case 37:
+          window.game.key[2] = pressed;
+          break;
+
+          // Right (d and right arrow)
+        case 68:
+        case 39:
+          window.game.key[3] = pressed;
+          break;
+
+          // A (space bar)
+        case 32:
+          window.game.key[4] = pressed;
+          break;
+
+          // B (ctrl)
+        case 17:
+          window.game.key[5] = pressed;
+          break;
+
+          // Unknown key
+        default:
+          break;
+      }
+    }
+
+    /*****************************************************************************
+     * Main
+     ****************************************************************************/
+
+    function init() {
+
+      // Define our game variables
+      window.game.player = {
+        x: 100,
+        y: 100
+      };
+      window.game.key = [0, 0, 0, 0, 0, 0]
+
+      // Attach key press handlers
+      window.document.addEventListener('keydown', function(e) {
+        changeKey(e.keyCode, 1);
+      });
+      window.document.addEventListener('keyup', function(e) {
+        changeKey(e.keyCode, 0);
+      });
+
+      debug("Resolustion: " + window.game.canvas.width + "x" + window.game.canvas.height);
+    }
+
+    function main() {
+
+      // Handle input
+      handleInput();
+
+      // Clear screen
+      window.game.ctx.clearRect(0, 0, window.game.canvas.width, window.game.canvas.height);
+
+      // Draw game
+      drawPlayer();
+
+      // Set timeout for next frame
+      requestAnimationFrame(main);
+    }
+
+    // Start the game
+    init();
+    requestAnimationFrame(main);
+</script>
+</body>
+</html>
