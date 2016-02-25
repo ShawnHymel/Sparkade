@@ -12,7 +12,7 @@ var http = require("http"),
     port = process.argv[2] || 8888;
     
 // Location of page
-var page = "../SD_Breakout/index.html";
+var page = "../SD_Vortex/index.html";
 
 http.createServer(function(request, response) {
 

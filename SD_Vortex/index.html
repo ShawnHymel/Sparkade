@@ -6,102 +6,82 @@
     <title>Vortex</title>
     <style>
         body {
-          background-color: #c9c3c0;
+            background-color: #c9c3c0;
+        }
+        
+        .dpad-button {
+            position: absolute;
+            max-width: 50px;
+            max-height: 50px;
         }
 
         #container {
-          display: table;
-          table-layout: fixed;
-          margin: 20px auto 20px auto;
-          border: 2px solid black;
+            display: table;
+            table-layout: fixed;
+            margin: 20px auto 20px auto;
+            border: 2px solid black;
         }
 
         #row {
-          display: table-row;
-          background-color: green;
+            display: table-row;
+            background-color: green;
         }
 
         #bezel {
-          display: table-cell;
-          width: 280px;
-          padding: 25px 55px 25px 55px;
-          border-radius: 15px 15px 40px 15px;
-          background-color: #8a8387;
+            display: table-cell;
+            width: 280px;
+            padding: 25px 55px 25px 55px;
+            border-radius: 15px 15px 40px 15px;
+            background-color: #8a8387;
         }
 
         #screen {
-          width: 100%;
-          margin: 0 auto;
-          background-color: black;
+            width: 100%;
+            margin: 0 auto;
+            background-color: black;
         }
 
         #cell-dpad {
-          display: table-cell;
-          width: 200px;
-          background-color:lightblue;
+            display: table-cell;
+            width: 180px;
+            background-color:lightblue;
         }
 
         #button-up {
-          position: absolute;
-          bottom: 100px;
-          left: 80px;
-          max-width: 50px;
-          max-height: 50px;
+            top: 160px;
+            left: 40px;
         }
 
         #button-left {
-          position: absolute;
-          bottom: 60px;
-          left: 40px;
-          max-width: 50px;
-          max-height: 50px;
-          transform: rotate(270deg);
-          -ms-transform: rotate(270deg);
-          -webkit-transform: rotate(270deg);
-          -o-transform: rotate(270deg);
-          -moz-transform: rotate(270deg);
+            top: 200px;
+            left: 0px;
         }
 
         #button-right {
-          position: absolute;
-          bottom: 60px;
-          left: 120px;
-          max-width: 50px;
-          max-height: 50px;
-          transform: rotate(90deg);
-          -ms-transform: rotate(90deg);
-          -webkit-transform: rotate(90deg);
-          -o-transform: rotate(90deg);
-          -moz-transform: rotate(90deg);
+            top: 200px;
+            left: 75px;
         }
 
         #button-down {
-          position: absolute;
-          bottom: 20px;
-          left: 80px;
-          max-width: 50px;
-          max-height: 50px;
-          transform: rotate(180deg);
-          -ms-transform: rotate(180deg);
-          -webkit-transform: rotate(180deg);
-          -o-transform: rotate(180deg);
-          -moz-transform: rotate(90deg);
+            top: 235px;
+            left: 40px;
         }
 
         #cell-buttons {
-          display: table-cell;
-          width: 100px;
-          background-color: red;
+            display: table-cell;
+            width: 100px;
+            background-color: red;
         }
 
         #dpad {
-          display: block;
-          width: 50px;
+            position: relative;
+            display: block;
+            width: 50px;
         }
 
         #buttons {
-          display: block;
-          width: 50px;
+            display: block;
+            width: 50px;
         }
     </style>
 </head>
@@ -111,14 +91,14 @@
       <div id="row">
         <div id="cell-dpad">
           <div id="dpad">
-            <img id="button-up"
-              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
-            <img id="button-left"
-              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
-            <img id="button-right"
-              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
-            <img id="button-down"
-              src="http://s24.postimg.org/dsbjum88h/dpad_button.png">
+            <img class="dpad-button" id="button-up"
+              src="img/dpad_button_up.png">
+            <img class="dpad-button" id="button-left"
+              src="img/dpad_button_left.png">
+            <img class="dpad-button" id="button-right"
+              src="img/dpad_button_right.png">
+            <img class="dpad-button" id="button-down"
+              src="img/dpad_button_down.png">
           </div>
         </div>
         <div id="bezel">
@@ -126,14 +106,14 @@
         </div>
         <div id="cell-buttons">
           <div id="buttons">
-            a
+            <button id="testButton">stuff</button>
           </div>
         </div>
       </div>
     </div>
     <div id="text"></div>
 
-<script>
+<script type="text/javascript">
 
     // Declare our globals under one "game" object. Set div size.
     window.game = {};
@@ -141,15 +121,18 @@
     window.game.ctx = window.game.canvas.getContext("2d");
     document.getElementById("container").style.width = window.game.canvas.width + "px";
     document.getElementById("container").style.height = window.game.canvas.height + "px";
-
+    
     /*****************************************************************************
      * Game functions
      ****************************************************************************/
-    function click() {
-        console.log("powepr");
-        }
+    
     function debug(s) {
       document.getElementById('text').innerHTML = s;
+    }
+    
+    function assignButtonHandler(button, onpress, onrelease) {
+        button.addEventListener('touchstart', onpress);
+        button.addEventListener('touchend', onrelease);
     }
 
     function drawPlayer() {
@@ -184,47 +167,50 @@
     }
 
     function changeKey(key, pressed) {
-      switch (key) {
+        switch (key) {
 
-        // Up (w and up arrow)
-        case 'up':
-        case 87:
-        case 38:
-          window.game.key[0] = pressed;
-          break;
+            // Up (w and up arrow)
+            case 'up':
+            case 87:
+            case 38:
+                window.game.key[0] = pressed;
+                break;
 
-          // Down (s and down arrow)
-        case 83:
-        case 40:
-          window.game.key[1] = pressed;
-          break;
+            // Down (s and down arrow)
+            case 'down':
+            case 83:
+            case 40:
+                window.game.key[1] = pressed;
+                break;
 
-          // Left (a and left arrow)
-        case 65:
-        case 37:
-          window.game.key[2] = pressed;
-          break;
+            // Left (a and left arrow)
+            case 'left': 
+            case 65:
+            case 37:
+                window.game.key[2] = pressed;
+                break;
 
-          // Right (d and right arrow)
-        case 68:
-        case 39:
-          window.game.key[3] = pressed;
-          break;
+            // Right (d and right arrow)
+            case 'right':
+            case 68:
+            case 39:
+                window.game.key[3] = pressed;
+                break;
 
-          // A (space bar)
-        case 32:
-          window.game.key[4] = pressed;
-          break;
+            // A (space bar)
+            case 32:
+                window.game.key[4] = pressed;
+                break;
 
-          // B (ctrl)
-        case 17:
-          window.game.key[5] = pressed;
-          break;
+            // B (ctrl)
+            case 17:
+                window.game.key[5] = pressed;
+                break;
 
-          // Unknown key
-        default:
-          break;
-      }
+            // Unknown key
+            default:
+                break;
+        }
     }
 
     /*****************************************************************************
@@ -233,22 +219,44 @@
 
     function init() {
 
-      // Define our game variables
-      window.game.player = {
+        // Define our game variables
+        window.game.player = {
         x: 100,
         y: 100
-      };
-      window.game.key = [0, 0, 0, 0, 0, 0]
+        };
+        window.game.key = [0, 0, 0, 0, 0, 0]
 
-      // Attach key press handlers
-      window.document.addEventListener('keydown', function(e) {
-        changeKey(e.keyCode, 1);
-      });
-      window.document.addEventListener('keyup', function(e) {
-        changeKey(e.keyCode, 0);
-      });
+        // Attach key press handlers
+        window.document.addEventListener('keydown', function(e) {
+            changeKey(e.keyCode, 1);
+        });
+        window.document.addEventListener('keyup', function(e) {
+            changeKey(e.keyCode, 0);
+        });
 
-      debug("Resolustion: " + window.game.canvas.width + "x" + window.game.canvas.height);
+        // Assign handlers to the on-screen buttons
+        assignButtonHandler(document.getElementById("button-up"), function() {
+            changeKey('up', 1);
+        }, function() {
+            changeKey('up', 0);
+        });
+        assignButtonHandler(document.getElementById("button-down"), function() {
+            changeKey('down', 1);
+        }, function() {
+            changeKey('down', 0);
+        });
+        assignButtonHandler(document.getElementById("button-left"), function() {
+            changeKey('left', 1);
+        }, function() {
+            changeKey('left', 0);
+        });
+        assignButtonHandler(document.getElementById("button-right"), function() {
+            changeKey('right', 1);
+        }, function() {
+            changeKey('right', 0);
+        });
+
+        debug("Resolustion: " + window.game.canvas.width + "x" + window.game.canvas.height);
     }
 
     function main() {
