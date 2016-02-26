@@ -50,37 +50,17 @@
             width: 180px;
             background-color:lightblue;
         }
-
-        #button-up {
-            top: 160px;
-            left: 40px;
-        }
-
-        #button-left {
-            top: 200px;
-            left: 0px;
-        }
-
-        #button-right {
-            top: 200px;
-            left: 75px;
-        }
-
-        #button-down {
-            top: 235px;
-            left: 40px;
+        
+        #dpad {
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
         }
 
         #cell-buttons {
             display: table-cell;
             width: 100px;
             background-color: red;
-        }
-
-        #dpad {
-            position: relative;
-            display: block;
-            width: 50px;
         }
 
         #buttons {
@@ -94,16 +74,7 @@
     <div id="container">
       <div id="row">
         <div id="cell-dpad">
-          <div id="dpad">
-            <img class="dpad-button" id="button-up"
-              src="img/dpad_button_up.png">
-            <img class="dpad-button" id="button-left"
-              src="img/dpad_button_left.png">
-            <img class="dpad-button" id="button-right"
-              src="img/dpad_button_right.png">
-            <img class="dpad-button" id="button-down"
-              src="img/dpad_button_down.png">
-          </div>
+          <div id="dpad"></div>
         </div>
         <div id="bezel">
           <canvas id="screen" width="256" height="244"></canvas>
@@ -131,12 +102,9 @@
      ****************************************************************************/
     
     function debug(s) {
-      document.getElementById('text').innerHTML = s;
-    }
-    
-    function assignButtonHandler(button, onpress, onrelease) {
-        button.addEventListener('touchstart', onpress);
-        button.addEventListener('touchend', onrelease);
+        var newEl = document.createElement('div');
+        newEl.innerHTML = s;
+        document.getElementById('text').appendChild(newEl);
     }
 
     function drawPlayer() {
@@ -261,35 +229,19 @@
         document.body.addEventListener('touchmove', function(e) {
             e.preventDefault();
         });
+        
+        // Add touch listener
+        document.getElementById("dpad").addEventListener('touchstart', function(e) {
+            var touch = e.touches[0];
+            debug("x: " + touch.clientX + " y: " + touch.clientY + "<br>");
+        });
 
         // Attach key press handlers
-        window.document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function(e) {
             changeKey(e.keyCode, 1);
         });
-        window.document.addEventListener('keyup', function(e) {
+        document.addEventListener('keyup', function(e) {
             changeKey(e.keyCode, 0);
-        });
-
-        // Assign handlers to the on-screen buttons
-        assignButtonHandler(document.getElementById("button-up"), function() {
-            changeKey('up', 1);
-        }, function() {
-            changeKey('up', 0);
-        });
-        assignButtonHandler(document.getElementById("button-down"), function() {
-            changeKey('down', 1);
-        }, function() {
-            changeKey('down', 0);
-        });
-        assignButtonHandler(document.getElementById("button-left"), function() {
-            changeKey('left', 1);
-        }, function() {
-            changeKey('left', 0);
-        });
-        assignButtonHandler(document.getElementById("button-right"), function() {
-            changeKey('right', 1);
-        }, function() {
-            changeKey('right', 0);
         });
 
         debug("Resolustion: " + window.game.canvas.width + "x" + window.game.canvas.height);
